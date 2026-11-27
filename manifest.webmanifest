@@ -1,0 +1,23 @@
+{
+  "name": "parkwise \u2022 Where Did I Park?",
+  "short_name": "parkwise",
+  "description": "Concept D Combined Parking Guidance System for Building 34, Building 56, BH1, and BH4.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F6F4EF",
+  "theme_color": "#F6F4EF",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

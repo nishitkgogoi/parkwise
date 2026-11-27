@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#F6F4EF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Where Did I Park? • Campus Parking Guidance (P07)</title>
+  <style>
+    :root {
+      --bg-canvas: #f6f4ef;
+      --bg-surface: #fbf9f5;
+      --bg-card-sand: #efeae0;
+      --bg-lavender: #eae7f6;
+      --bg-lavender-strong: #ded9f2;
+      --ink-primary: #1f2328;
+      --ink-secondary: #5f646d;
+      --ink-muted: #8a8f98;
+      --border-soft: rgba(31, 35, 40, 0.08);
+      --border-med: rgba(31, 35, 40, 0.14);
+      --sage: #5c7a5b;
+      --sage-bg: #e7efe6;
+      --amber: #9c6b19;
+      --amber-bg: #f6ecd7;
+      --terracotta: #b8533d;
+      --terracotta-bg: #f7e3de;
+      --zone-a1: #4f6d8a;
+      --zone-a2: #5c7a5b;
+      --zone-b1: #b07428;
+      --zone-b2: #75639c;
+      --radius-xl: 24px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --shadow-soft: 0 2px 10px rgba(31, 35, 40, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg-canvas);
+      color: var(--ink-primary);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.48;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Frame wrapper (supports optional Mobile preview on PC) */
+    .viewport-stage {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--bg-canvas);
+      transition: background 0.2s ease, padding 0.2s ease;
+    }
+.app-frame {
+      width: 100%;
+      max-width: 820px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-canvas);
+      position: relative;
+    }
+/* Top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px 24px 12px;
+    }
+
+    .brand-wordmark {
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--ink-secondary);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .micro-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+
+    .device-toggle {
+      display: inline-flex;
+      background: var(--bg-card-sand);
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .device-btn {
+      border: 0;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .device-btn.active {
+      background: var(--bg-surface);
+      color: var(--ink-primary);
+      box-shadow: var(--shadow-soft);
+    }
+
+    @media (max-width: 767px) {
+      .preview-only-toggle {
+        display: none;
+      }
+      .topbar {
+        padding: 18px 20px 10px;
+      }
+    }
+
+    /* Desktop Top Navigation (hidden in mobile or mobile-preview) */
+    .desktop-nav {
+      display: flex;
+      gap: 6px;
+      padding: 0 24px 16px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+@media (max-width: 767px) {
+      .desktop-nav {
+        display: none;
+      }
+    }
+
+    .d-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .d-nav-btn.active {
+      background: var(--bg-lavender);
+      color: var(--ink-primary);
+    }
+
+    /* Main Content Area */
+    .screen-container {
+      flex: 1;
+      padding: 18px 24px 104px;
+    }
+
+    @media (max-width: 767px) {
+      .screen-container {
+        padding: 14px 20px 96px;
+      }
+    }
+.screen {
+      display: none;
+      animation: fadeUp 0.18s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Editorial Typography */
+    .display-title {
+      font-size: clamp(1.85rem, 4vw, 2.35rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
+      color: var(--ink-primary);
+      margin-bottom: 8px;
+    }
+
+    .display-sub {
+      font-size: 0.96rem;
+      color: var(--ink-secondary);
+      margin-bottom: 22px;
+    }
+
+    .section-heading {
+      font-size: 1.38rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--ink-primary);
+      margin: 26px 0 4px;
+    }
+
+    .section-sub {
+      font-size: 0.9rem;
+      color: var(--ink-secondary);
+      margin-bottom: 14px;
+    }
+
+    /* Cards matching reference image */
+    .context-card {
+      background: var(--bg-lavender);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .context-card:hover {
+      background: var(--bg-lavender-strong);
+    }
+
+    .context-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+      margin-bottom: 6px;
+    }
+
+    .context-value {
+      font-size: 1.28rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--ink-primary);
+      margin-bottom: 4px;
+    }
+
+    .context-hint {
+      font-size: 0.86rem;
+      color: var(--ink-secondary);
+    }
+
+    .art-card {
+      display: block;
+      width: 100%;
+      border: 0;
+      padding: 0;
+      background: var(--bg-card-sand);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.16s ease;
+    }
+
+    .art-card:hover {
+      transform: translateY(-1px);
+    }
+
+    .art-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+
+    .art-card-caption {
+      padding: 14px 18px 16px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .art-card-meta {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+      margin-bottom: 3px;
+    }
+
+    .art-card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink-primary);
+    }
+
+    /* Clean Individual Screen Cards */
+    .surface-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .lot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .lot-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lot-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 4px 9px;
+      border-radius: 8px;
+      background: var(--bg-card-sand);
+      color: var(--ink-primary);
+    }
+
+    .lot-name {
+      font-size: 1.02rem;
+      font-weight: 600;
+    }
+
+    .lot-meta {
+      font-size: 0.84rem;
+      color: var(--ink-secondary);
+      margin-top: 6px;
+    }
+
+    .status-pill {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .status-available {
+      background: var(--sage-bg);
+      color: var(--sage);
+    }
+
+    .status-filling {
+      background: var(--amber-bg);
+      color: var(--amber);
+    }
+
+    .status-full {
+      background: var(--terracotta-bg);
+      color: var(--terracotta);
+    }
+
+    /* Buttons & Inputs */
+    .btn-calm {
+      border: 0;
+      background: var(--ink-primary);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 13px 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      width: 100%;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn-calm:hover {
+      opacity: 0.92;
+    }
+
+    .btn-soft {
+      border: 1px solid var(--border-med);
+      background: var(--bg-surface);
+      color: var(--ink-primary);
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 9px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .btn-soft:hover {
+      background: var(--bg-card-sand);
+    }
+
+    .choice-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .choice-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .pill-choice {
+      border: 1px solid var(--border-med);
+      background: var(--bg-surface);
+      color: var(--ink-primary);
+      border-radius: var(--radius-md);
+      padding: 12px 10px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .pill-choice.active {
+      background: var(--bg-lavender);
+      border-color: #7c72b8;
+    }
+
+    .zone-choice {
+      padding: 14px 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-med);
+      background: var(--bg-surface);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .zone-choice.active {
+      background: var(--bg-lavender);
+      border-color: #7c72b8;
+      box-shadow: inset 0 0 0 1px #7c72b8;
+    }
+
+    .zone-code {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .zone-cue {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--ink-secondary);
+      margin-top: 2px;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-med);
+      background: var(--bg-surface);
+      color: var(--ink-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .text-input:focus {
+      border-color: var(--ink-primary);
+    }
+
+    .field-block {
+      margin-bottom: 18px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      margin-bottom: 8px;
+    }
+
+    .note-banner {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card-sand);
+      font-size: 0.8rem;
+      color: var(--ink-secondary);
+    }
+
+    /* Attendant 3-way pills */
+    .att-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .att-pill {
+      padding: 9px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border-med);
+      background: var(--bg-canvas);
+      color: var(--ink-secondary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .att-pill.active-avail {
+      background: var(--sage-bg);
+      color: var(--sage);
+      border-color: var(--sage);
+    }
+
+    .att-pill.active-fill {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border-color: var(--amber);
+    }
+
+    .att-pill.active-full {
+      background: var(--terracotta-bg);
+      color: var(--terracotta);
+      border-color: var(--terracotta);
+    }
+
+    /* Bottom Navigation Bar (Mobile & Mobile Preview) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      background: rgba(251, 249, 245, 0.94);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-soft);
+      display: none;
+      grid-template-columns: repeat(5, 1fr);
+      padding: 8px 8px calc(10px + env(safe-area-inset-bottom));
+    }
+@media (max-width: 767px) {
+      .bottom-nav {
+        display: grid;
+      }
+    }
+
+    .b-nav-btn {
+      border: 0;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 2px;
+      cursor: pointer;
+      color: var(--ink-secondary);
+      font-size: 0.68rem;
+      font-weight: 600;
+    }
+
+    .b-nav-icon {
+      width: 44px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      transition: background 0.15s ease;
+    }
+
+    .b-nav-btn.active {
+      color: var(--ink-primary);
+    }
+
+    .b-nav-btn.active .b-nav-icon {
+      background: var(--bg-lavender);
+    }
+
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 22px;
+    }
+    @media (max-width: 640px) {
+      .role-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .role-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-med);
+      border-radius: var(--radius-xl);
+      padding: 0;
+      overflow: hidden;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .role-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: var(--bg-card-sand);
+    }
+    .role-card-body {
+      padding: 18px 20px 20px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .role-card:hover {
+      background: var(--bg-lavender);
+      border-color: #7c72b8;
+      transform: translateY(-2px);
+    }
+    .role-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--bg-lavender);
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+      color: var(--ink-primary);
+    }
+    .role-card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--ink-primary);
+      margin-bottom: 6px;
+    }
+    .role-card-desc {
+      font-size: 0.86rem;
+      color: var(--ink-secondary);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--ink-primary);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 50;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+</head>
+<body>
+  <div class="viewport-stage" id="viewportStage">
+    <div class="app-frame">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <span class="brand-wordmark">parkwise</span>
+        <div class="topbar-right">
+          <button type="button" class="btn-soft" id="switchRoleBtn" style="display: none; padding: 6px 12px; font-size: 0.76rem;">Switch role</button>
+          <span class="micro-label" id="spaceLabel">WELCOME</span>
+        </div>
+      </header>
+
+      <!-- PC Navigation: Normal Vehicle User -->
+      <nav class="desktop-nav" id="userDesktopNav" aria-label="Vehicle user sections">
+        <button type="button" class="d-nav-btn active" data-tab="home">Home</button>
+        <button type="button" class="d-nav-btn" data-tab="scan">Scan</button>
+        <button type="button" class="d-nav-btn" data-tab="lots">Lots</button>
+        <button type="button" class="d-nav-btn" data-tab="saved">Saved</button>
+      </nav>
+
+      <!-- PC Navigation: Parking Attendant -->
+      <nav class="desktop-nav" id="attDesktopNav" aria-label="Attendant sections" style="display: none;">
+        <button type="button" class="d-nav-btn active" data-tab="att-home">Desk</button>
+        <button type="button" class="d-nav-btn" data-tab="staff">Update Board</button>
+        <button type="button" class="d-nav-btn" data-tab="att-signs">Zone Signs</button>
+      </nav>
+
+      <!-- Individual Screens -->
+      <main class="screen-container">
+        <!-- 0. FIRST DASHBOARD: ROLE PICKER -->
+        <section class="screen active" id="screen-chooser">
+          <h1 class="display-title">Choose your space.<br />Start simply.</h1>
+          <p class="display-sub">Select whether you are parking a vehicle or updating campus lot status.</p>
+
+          <div class="role-grid">
+            <button type="button" class="role-card" id="chooseUserBtn">
+              <img src="hero.jpg" alt="Vehicle user parking guidance" />
+              <div class="role-card-body">
+                <div class="context-eyebrow">FOR RIDERS &amp; DRIVERS</div>
+                <div class="role-card-title">Vehicle User</div>
+                <p class="role-card-desc">Check Building 34, 56, BH1 &amp; BH4 availability, scan a zone QR, and save where you parked.</p>
+              </div>
+            </button>
+
+            <button type="button" class="role-card" id="chooseAttendantBtn">
+              <img src="tokens.jpg" alt="Attendant parking zone controls" />
+              <div class="role-card-body">
+                <div class="context-eyebrow">FOR LOT STAFF</div>
+                <div class="role-card-title">Parking Attendant</div>
+                <p class="role-card-desc">Manually update lot status (Available, Filling, Full) and manage A1–B2 zone signs.</p>
+              </div>
+            </button>
+          </div>
+
+          <div class="note-banner" style="margin-top: 22px;">
+            <strong>Concept D · Team 14:</strong> No automatic sensors or tracking. Status updates are manual and saved locations stay on your device.
+          </div>
+        </section>
+
+        <!-- 1. HOME -->
+        <section class="screen" id="screen-home">
+          <h1 class="display-title">Your campus parking.<br />Your pace.</h1>
+          <p class="display-sub">Simple guidance for the lots that matter.</p>
+
+          <div class="context-card" id="homeContextCard" role="button" tabindex="0">
+            <div class="context-eyebrow">YOUR SAVED SPOT</div>
+            <div class="context-value" id="homeContextValue">No spot saved · Tap to set</div>
+            <div class="context-hint" id="homeContextHint">Make this space fit where you parked today</div>
+          </div>
+
+          <button type="button" class="art-card" data-jump="lots">
+            <img src="hero.jpg" alt="Calm campus parking guidance pathway" />
+            <div class="art-card-caption">
+              <div class="art-card-meta">AVAILABILITY BOARD</div>
+              <div class="art-card-title" id="homeLotsSummary">Check Building 34, 56, BH1 &amp; BH4</div>
+            </div>
+          </button>
+
+          <h2 class="section-heading">A little clarity, today</h2>
+          <p class="section-sub">Pick one useful next step.</p>
+
+          <button type="button" class="art-card" data-jump="saved">
+            <img src="tokens.jpg" alt="Connected parking zone tokens" />
+            <div class="art-card-caption">
+              <div class="art-card-meta">ZONE REMINDER · A1 TO B2</div>
+              <div class="art-card-title">Save your lot and colour-coded section</div>
+            </div>
+          </button>
+        </section>
+
+        <!-- 2. SCAN (QR Check-in) -->
+        <section class="screen" id="screen-scan">
+          <h1 class="display-title">Scan a zone sign.</h1>
+          <p class="display-sub">QR codes on lot markers open your section pre-filled.</p>
+
+          <div class="stack" id="qrPresetList"></div>
+
+          <div class="note-banner">
+            <strong>No-phone fallback:</strong> You can also remember or photograph the physical <strong>A1 / A2 / B1 / B2</strong> section sign in the lot.
+          </div>
+        </section>
+
+        <!-- 3. LOTS (Manual Availability Board) -->
+        <section class="screen" id="screen-lots">
+          <h1 class="display-title">Lot availability.</h1>
+          <p class="display-sub">Approximate status updated manually by attendants.</p>
+
+          <div class="stack" id="lotsBoardList"></div>
+
+          <div class="note-banner">
+            <strong>Approximate only:</strong> No automatic sensors or vehicle tracking are used. Check the last-updated time before heading in.
+          </div>
+        </section>
+
+        <!-- 4. SAVED (Save & Retrieve Spot) -->
+        <section class="screen" id="screen-saved">
+          <h1 class="display-title">Where did I park?</h1>
+          <p class="display-sub">Save your section once, retrieve it after class.</p>
+
+          <div class="context-card" id="savedDetailCard" style="cursor: default;">
+            <div class="context-eyebrow">CURRENTLY SAVED</div>
+            <div class="context-value" id="savedCardTitle">Nothing saved yet</div>
+            <div class="context-hint" id="savedCardHint">Select a lot and section below to store it on this device.</div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;" id="savedActionRow">
+              <button type="button" class="btn-soft" id="copySpotBtn" style="display: none;">Copy Note</button>
+              <button type="button" class="btn-soft" id="clearSpotBtn" style="display: none;">Picked Up / Clear</button>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="field-block">
+              <span class="field-label">1. Choose Lot</span>
+              <div class="choice-grid-2" id="saveLotPicker"></div>
+            </div>
+
+            <div class="field-block">
+              <span class="field-label">2. Section Marker (Label + Colour Cue)</span>
+              <div class="choice-grid-4" id="saveZonePicker">
+                <button type="button" class="zone-choice active" data-zone="A1">
+                  <span class="zone-code" style="color: var(--zone-a1);">A1</span>
+                  <span class="zone-cue">Blue</span>
+                </button>
+                <button type="button" class="zone-choice" data-zone="A2">
+                  <span class="zone-code" style="color: var(--zone-a2);">A2</span>
+                  <span class="zone-cue">Sage</span>
+                </button>
+                <button type="button" class="zone-choice" data-zone="B1">
+                  <span class="zone-code" style="color: var(--zone-b1);">B1</span>
+                  <span class="zone-cue">Amber</span>
+                </button>
+                <button type="button" class="zone-choice" data-zone="B2">
+                  <span class="zone-code" style="color: var(--zone-b2);">B2</span>
+                  <span class="zone-cue">Violet</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="field-block">
+              <span class="field-label">3. Vehicle Type</span>
+              <div class="choice-grid-2">
+                <button type="button" class="pill-choice active" data-vehicle="Two-Wheeler">Two-Wheeler</button>
+                <button type="button" class="pill-choice" data-vehicle="Car / Permitted">Car / Permitted</button>
+              </div>
+            </div>
+
+            <div class="field-block">
+              <label class="field-label" for="spotNoteInput">4. Optional Landmark</label>
+              <input type="text" id="spotNoteInput" class="text-input" maxlength="70" placeholder="e.g., Near stairs or shade tree" />
+            </div>
+
+            <button type="button" class="btn-calm" id="saveSpotBtn">Save Parking Location</button>
+          </div>
+        </section>
+
+        <!-- ATTENDANT 1: DESK OVERVIEW -->
+        <section class="screen" id="screen-att-home">
+          <h1 class="display-title">Attendant desk.<br />Clear updates.</h1>
+          <p class="display-sub">Manual status control for Building 34, 56, BH1, and BH4.</p>
+
+          <div class="context-card" id="attSummaryCard" role="button" tabindex="0">
+            <div class="context-eyebrow">BOARD SUMMARY</div>
+            <div class="context-value" id="attSummaryValue">3 Available · 1 Filling · 0 Full</div>
+            <div class="context-hint" id="attSummaryHint">Tap to open the manual status board</div>
+          </div>
+
+          <button type="button" class="art-card" data-jump="staff">
+            <img src="tokens.jpg" alt="Update campus parking zones" />
+            <div class="art-card-caption">
+              <div class="art-card-meta">MANUAL STATUS BOARD</div>
+              <div class="art-card-title">Update Building 34, 56, BH1 &amp; BH4</div>
+            </div>
+          </button>
+
+          <h2 class="section-heading">Shift actions</h2>
+          <p class="section-sub">Keep campus boards accurate.</p>
+
+          <div class="surface-card">
+            <div class="lot-row">
+              <div>
+                <div class="lot-name">Morning Reset</div>
+                <p class="lot-meta" style="margin-top: 2px;">Set all four campus lots to Available at the start of shift.</p>
+              </div>
+              <button type="button" class="btn-soft" id="resetAllAvailBtn">Reset All</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ATTENDANT 2: UPDATE BOARD -->
+        <section class="screen" id="screen-staff">
+          <h1 class="display-title">Update board.</h1>
+          <p class="display-sub">Tap a status to update what riders see right now.</p>
+
+          <div class="stack" id="staffLotsList"></div>
+        </section>
+
+        <!-- ATTENDANT 3: ZONE SIGNS -->
+        <section class="screen" id="screen-att-signs">
+          <h1 class="display-title">Zone signs.</h1>
+          <p class="display-sub">Active A1–B2 section markers and QR deep links for riders.</p>
+
+          <div class="stack" id="attSignsList"></div>
+        </section>
+      </main>
+
+      <!-- Mobile Bottom Nav: Vehicle User -->
+      <nav class="bottom-nav" id="userBottomNav" aria-label="Mobile user sections" style="grid-template-columns: repeat(4, 1fr);">
+        <button type="button" class="b-nav-btn active" data-tab="home">
+          <span class="b-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+          </span>
+          Home
+        </button>
+        <button type="button" class="b-nav-btn" data-tab="scan">
+          <span class="b-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M7 12h10"/></svg>
+          </span>
+          Scan
+        </button>
+        <button type="button" class="b-nav-btn" data-tab="lots">
+          <span class="b-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 16V8h4a2.5 2.5 0 0 1 0 5H9"/></svg>
+          </span>
+          Lots
+        </button>
+        <button type="button" class="b-nav-btn" data-tab="saved">
+          <span class="b-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+          </span>
+          Saved
+        </button>
+      </nav>
+
+      <!-- Mobile Bottom Nav: Attendant -->
+      <nav class="bottom-nav" id="attBottomNav" aria-label="Mobile attendant sections" style="grid-template-columns: repeat(3, 1fr); display: none;">
+        <button type="button" class="b-nav-btn active" data-tab="att-home">
+          <span class="b-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 14h6"/></svg>
+          </span>
+          Desk
+        </button>
+        <button type="button" class="b-nav-btn" data-tab="staff">
+          <span class="b-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          </span>
+          Update
+        </button>
+        <button type="button" class="b-nav-btn" data-tab="att-signs">
+          <span class="b-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M7 12h10"/></svg>
+          </span>
+          Signs
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      const STORAGE_LOTS = "p07_lots_editorial_v1";
+      const STORAGE_SPOT = "p07_spot_editorial_v1";
+
+      const DEFAULT_LOTS = [
+        { id: "B34", name: "Building 34", status: "Filling", walk: "1–2 min walk", updatedAt: "10:15 AM" },
+        { id: "B56", name: "Building 56", status: "Available", walk: "2 min walk", updatedAt: "10:18 AM" },
+        { id: "BH1", name: "BH1 Parking", status: "Available", walk: "4–5 min walk", updatedAt: "10:10 AM" },
+        { id: "BH4", name: "BH4 Overflow", status: "Available", walk: "6–7 min walk", updatedAt: "10:05 AM" }
+      ];
+
+      const QR_LINKS = [
+        { lot: "B34", section: "A1", desc: "Front two-wheeler row near admin side" },
+        { lot: "B34", section: "B2", desc: "Rear row beside Building 34" },
+        { lot: "B56", section: "A2", desc: "Middle academic-block row" },
+        { lot: "BH1", section: "B1", desc: "Hostel-side marked section" },
+        { lot: "BH4", section: "A1", desc: "Overflow entry section" }
+      ];
+
+      function safeGet(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function safeSet(key, val) {
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+      }
+
+      function safeRemove(key) {
+        try { localStorage.removeItem(key); } catch (e) {}
+      }
+
+      function nowTime() {
+        return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+
+      let state = {
+        role: null, // null | "user" | "attendant"
+        tab: "chooser",
+        lots: safeGet(STORAGE_LOTS, DEFAULT_LOTS),
+        selectedLot: "B34",
+        selectedSection: "A1",
+        selectedVehicle: "Two-Wheeler",
+        savedSpot: safeGet(STORAGE_SPOT, null)
+      };
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const qRole = params.get("role");
+        const qLot = params.get("lot");
+        const qSec = params.get("section");
+        if (qRole === "attendant") {
+          state.role = "attendant";
+          state.tab = "att-home";
+        } else if (qRole === "user") {
+          state.role = "user";
+          state.tab = "home";
+        }
+        if (qLot && state.lots.some(l => l.id === qLot.toUpperCase())) {
+          state.role = "user";
+          state.selectedLot = qLot.toUpperCase();
+          state.tab = "saved";
+        }
+        if (qSec && ["A1", "A2", "B1", "B2"].includes(qSec.toUpperCase())) {
+          state.selectedSection = qSec.toUpperCase();
+        }
+      } catch (e) {}
+
+      const toastEl = document.getElementById("toast");
+      let toastTimer = null;
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2400);
+      }
+
+      function statusClass(s) {
+        if (s === "Available") return "status-available";
+        if (s === "Filling") return "status-filling";
+        return "status-full";
+      }
+
+      function switchTab(tab) {
+        state.tab = tab;
+        document.querySelectorAll(".screen").forEach(el => {
+          el.classList.toggle("active", el.id === `screen-${tab}`);
+        });
+        document.querySelectorAll("[data-tab]").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.tab === tab);
+        });
+      }
+
+      function renderHome() {
+        const valEl = document.getElementById("homeContextValue");
+        const hintEl = document.getElementById("homeContextHint");
+        const summaryEl = document.getElementById("homeLotsSummary");
+
+        if (state.savedSpot) {
+          const lot = state.lots.find(l => l.id === state.savedSpot.lotId);
+          valEl.textContent = `${lot ? lot.name : state.savedSpot.lotId} · Section ${state.savedSpot.section}`;
+          hintEl.textContent = `${state.savedSpot.vehicle} · Saved at ${state.savedSpot.savedAt}`;
+        } else {
+          valEl.textContent = "No spot saved · Tap to set";
+          hintEl.textContent = "Make this space fit where you parked today";
+        }
+
+        const openCount = state.lots.filter(l => l.status === "Available").length;
+        summaryEl.textContent = `${openCount} of ${state.lots.length} lots currently Available`;
+      }
+
+      function renderScan() {
+        const list = document.getElementById("qrPresetList");
+        list.innerHTML = QR_LINKS.map(item => `
+          <button type="button" class="surface-card" style="text-align: left; cursor: pointer;" data-qr-lot="${item.lot}" data-qr-sec="${item.section}">
+            <div class="lot-row">
+              <div class="lot-title-group">
+                <span class="lot-tag">${item.lot}</span>
+                <span class="lot-name">Section ${item.section}</span>
+              </div>
+              <span class="micro-label" style="color: #5f646d;">TAP TO SCAN →</span>
+            </div>
+            <p class="lot-meta">${item.desc}</p>
+          </button>
+        `).join("");
+      }
+
+      function renderLots() {
+        const list = document.getElementById("lotsBoardList");
+        list.innerHTML = state.lots.map(lot => `
+          <article class="surface-card">
+            <div class="lot-row">
+              <div class="lot-title-group">
+                <span class="lot-tag">${lot.id}</span>
+                <h2 class="lot-name">${lot.name}</h2>
+              </div>
+              <span class="status-pill ${statusClass(lot.status)}">${lot.status}</span>
+            </div>
+            <div class="lot-row" style="margin-top: 10px;">
+              <span class="lot-meta" style="margin-top: 0;">${lot.walk} · Updated ${lot.updatedAt}</span>
+              <button type="button" class="btn-soft" data-park-lot="${lot.id}">Save spot here</button>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderSaved() {
+        const titleEl = document.getElementById("savedCardTitle");
+        const hintEl = document.getElementById("savedCardHint");
+        const copyBtn = document.getElementById("copySpotBtn");
+        const clearBtn = document.getElementById("clearSpotBtn");
+
+        if (state.savedSpot) {
+          const lot = state.lots.find(l => l.id === state.savedSpot.lotId);
+          titleEl.textContent = `${lot ? lot.name : state.savedSpot.lotId} · Section ${state.savedSpot.section}`;
+          hintEl.textContent = `${state.savedSpot.vehicle} · Saved at ${state.savedSpot.savedAt}${state.savedSpot.note ? ` · “${state.savedSpot.note}”` : ""}`;
+          copyBtn.style.display = "inline-block";
+          clearBtn.style.display = "inline-block";
+        } else {
+          titleEl.textContent = "Nothing saved yet";
+          hintEl.textContent = "Select a lot and section below to store it on this device.";
+          copyBtn.style.display = "none";
+          clearBtn.style.display = "none";
+        }
+
+        document.getElementById("saveLotPicker").innerHTML = state.lots.map(lot => `
+          <button type="button" class="pill-choice ${lot.id === state.selectedLot ? "active" : ""}" data-pick-lot="${lot.id}">
+            ${lot.name}
+          </button>
+        `).join("");
+
+        document.querySelectorAll("#saveZonePicker .zone-choice").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.zone === state.selectedSection);
+        });
+
+        document.querySelectorAll("[data-vehicle]").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.vehicle === state.selectedVehicle);
+        });
+      }
+
+      function renderStaff() {
+        const avail = state.lots.filter(l => l.status === "Available").length;
+        const filling = state.lots.filter(l => l.status === "Filling").length;
+        const full = state.lots.filter(l => l.status === "Full").length;
+        document.getElementById("attSummaryValue").textContent = `${avail} Available · ${filling} Filling · ${full} Full`;
+
+        const list = document.getElementById("staffLotsList");
+        list.innerHTML = state.lots.map(lot => `
+          <article class="surface-card">
+            <div class="lot-row">
+              <div class="lot-title-group">
+                <span class="lot-tag">${lot.id}</span>
+                <h2 class="lot-name">${lot.name}</h2>
+              </div>
+              <span class="lot-meta" style="margin-top: 0;">Updated ${lot.updatedAt}</span>
+            </div>
+            <div class="att-bar">
+              <button type="button" class="att-pill ${lot.status === "Available" ? "active-avail" : ""}" data-staff-lot="${lot.id}" data-staff-status="Available">Available</button>
+              <button type="button" class="att-pill ${lot.status === "Filling" ? "active-fill" : ""}" data-staff-lot="${lot.id}" data-staff-status="Filling">Filling</button>
+              <button type="button" class="att-pill ${lot.status === "Full" ? "active-full" : ""}" data-staff-lot="${lot.id}" data-staff-status="Full">Full</button>
+            </div>
+          </article>
+        `).join("");
+
+        document.getElementById("attSignsList").innerHTML = state.lots.map(lot => `
+          <article class="surface-card">
+            <div class="lot-row">
+              <div class="lot-title-group">
+                <span class="lot-tag">${lot.id}</span>
+                <h2 class="lot-name">${lot.name}</h2>
+              </div>
+              <span class="micro-label">A1 · A2 · B1 · B2</span>
+            </div>
+            <p class="lot-meta">QR link format: <code>?lot=${lot.id}&amp;section=A1</code></p>
+          </article>
+        `).join("");
+      }
+
+      function applyRoleUI() {
+        const userD = document.getElementById("userDesktopNav");
+        const attD = document.getElementById("attDesktopNav");
+        const userB = document.getElementById("userBottomNav");
+        const attB = document.getElementById("attBottomNav");
+        const switchBtn = document.getElementById("switchRoleBtn");
+        const label = document.getElementById("spaceLabel");
+
+        if (!state.role) {
+          userD.style.display = "none";
+          attD.style.display = "none";
+          userB.style.display = "none";
+          attB.style.display = "none";
+          switchBtn.style.display = "none";
+          label.textContent = "WELCOME";
+          return;
+        }
+
+        const isAtt = state.role === "attendant";
+        switchBtn.style.display = "inline-block";
+        label.textContent = isAtt ? "ATTENDANT DESK" : "USER SPACE";
+        userD.style.display = isAtt ? "none" : "";
+        attD.style.display = isAtt ? "" : "none";
+        userB.style.display = isAtt ? "none" : "";
+        attB.style.display = isAtt ? "" : "none";
+      }
+
+      function switchRole(newRole) {
+        state.role = newRole;
+        if (!newRole) {
+          state.tab = "chooser";
+        } else {
+          state.tab = newRole === "attendant" ? "att-home" : "home";
+        }
+        applyRoleUI();
+        switchTab(state.tab);
+      }
+
+      function renderAll() {
+        applyRoleUI();
+        switchTab(state.tab);
+        renderHome();
+        renderScan();
+        renderLots();
+        renderSaved();
+        renderStaff();
+      }
+
+      // Navigation clicks
+      document.querySelectorAll("[data-tab]").forEach(btn => {
+        btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+      });
+
+      document.querySelectorAll("[data-jump]").forEach(btn => {
+        btn.addEventListener("click", () => switchTab(btn.dataset.jump));
+      });
+
+      document.getElementById("homeContextCard").addEventListener("click", () => switchTab("saved"));
+      document.getElementById("attSummaryCard").addEventListener("click", () => switchTab("staff"));
+      document.getElementById("chooseUserBtn").addEventListener("click", () => switchRole("user"));
+      document.getElementById("chooseAttendantBtn").addEventListener("click", () => switchRole("attendant"));
+      document.getElementById("switchRoleBtn").addEventListener("click", () => switchRole(null));
+      document.getElementById("resetAllAvailBtn").addEventListener("click", () => {
+        const t = nowTime();
+        state.lots = state.lots.map(l => ({ ...l, status: "Available", updatedAt: t }));
+        safeSet(STORAGE_LOTS, state.lots);
+        renderHome();
+        renderLots();
+        renderStaff();
+        showToast("All lots reset to Available");
+      });
+
+
+
+      // Scan QR preset
+      document.getElementById("qrPresetList").addEventListener("click", e => {
+        const btn = e.target.closest("[data-qr-lot]");
+        if (!btn) return;
+        state.selectedLot = btn.dataset.qrLot;
+        state.selectedSection = btn.dataset.qrSec;
+        renderSaved();
+        switchTab("saved");
+        showToast(`Loaded ${state.selectedLot} · Section ${state.selectedSection}`);
+      });
+
+      // Lots -> Save spot here
+      document.getElementById("lotsBoardList").addEventListener("click", e => {
+        const btn = e.target.closest("[data-park-lot]");
+        if (!btn) return;
+        state.selectedLot = btn.dataset.parkLot;
+        renderSaved();
+        switchTab("saved");
+      });
+
+      // Save form interactions
+      document.getElementById("saveLotPicker").addEventListener("click", e => {
+        const btn = e.target.closest("[data-pick-lot]");
+        if (!btn) return;
+        state.selectedLot = btn.dataset.pickLot;
+        renderSaved();
+      });
+
+      document.getElementById("saveZonePicker").addEventListener("click", e => {
+        const btn = e.target.closest("[data-zone]");
+        if (!btn) return;
+        state.selectedSection = btn.dataset.zone;
+        renderSaved();
+      });
+
+      document.querySelectorAll("[data-vehicle]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedVehicle = btn.dataset.vehicle;
+          renderSaved();
+        });
+      });
+
+      document.getElementById("saveSpotBtn").addEventListener("click", () => {
+        const note = document.getElementById("spotNoteInput").value.trim();
+        state.savedSpot = {
+          lotId: state.selectedLot,
+          section: state.selectedSection,
+          vehicle: state.selectedVehicle,
+          note,
+          savedAt: nowTime()
+        };
+        safeSet(STORAGE_SPOT, state.savedSpot);
+        renderHome();
+        renderSaved();
+        showToast(`Saved ${state.selectedLot} · Section ${state.selectedSection}`);
+      });
+
+      document.getElementById("clearSpotBtn").addEventListener("click", () => {
+        state.savedSpot = null;
+        safeRemove(STORAGE_SPOT);
+        document.getElementById("spotNoteInput").value = "";
+        renderHome();
+        renderSaved();
+        showToast("Spot cleared");
+      });
+
+      document.getElementById("copySpotBtn").addEventListener("click", () => {
+        if (!state.savedSpot) return;
+        const text = `${state.savedSpot.lotId} · Section ${state.savedSpot.section} (${state.savedSpot.vehicle}) at ${state.savedSpot.savedAt}${state.savedSpot.note ? " - " + state.savedSpot.note : ""}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => showToast("Copied"), () => showToast("Copied"));
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand("copy"); } catch (e) {}
+          document.body.removeChild(ta);
+          showToast("Copied");
+        }
+      });
+
+      // Staff manual updates
+      document.getElementById("staffLotsList").addEventListener("click", e => {
+        const btn = e.target.closest("[data-staff-lot]");
+        if (!btn) return;
+        const lotId = btn.dataset.staffLot;
+        const newStatus = btn.dataset.staffStatus;
+        state.lots = state.lots.map(l =>
+          l.id === lotId ? { ...l, status: newStatus, updatedAt: nowTime() } : l
+        );
+        safeSet(STORAGE_LOTS, state.lots);
+        renderHome();
+        renderLots();
+        renderStaff();
+        showToast(`${lotId} updated to ${newStatus}`);
+      });
+
+      renderAll();
+    })();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+      });
+    }
+  </script>
+</body>
+</html>
